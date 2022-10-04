@@ -233,6 +233,6 @@ class User {
 
 // User.messagesTo('spongebob');
 
-User.updateLoginTimestamp('dne');
+// User.updateLoginTimestamp('dne');
 
 module.exports = User;

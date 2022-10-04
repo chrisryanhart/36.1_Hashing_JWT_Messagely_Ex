@@ -1,15 +1,19 @@
+const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = new express.Router();
 const ExpressError = require('../expressError.js')
-const db = require('../db.js');
 
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+// nr
+// const db = require('../db.js');
+
 const {BCRYPT_WORK_FACTOR,SECRET_KEY} = require('../config');
 
 const {authenticateJWT,ensureCorrectUser,ensureLoggedIn} = require('../middleware/auth.js');
 
-const messages = require("../models/messages");
-const users = require("../models/users");
+const Message = require("../models/message.js");
+const User = require("../models/user.js");
 
 
 
@@ -26,6 +30,15 @@ const users = require("../models/users");
  *
  **/
 
+ router.get('/:id', async (req,res,next)=>{
+
+    const id = req.params.id;
+
+    const msgDetails = await Message.get(id);
+
+    return res.json({message: msgDetails});
+
+});
 
 /** POST / - post message.
  *
@@ -34,6 +47,15 @@ const users = require("../models/users");
  *
  **/
 
+router.post('/', async (req,res,next)=>{
+
+    const {from_username, to_username, body} = req.body;
+
+    const newMsg = await Message.create({from_username, to_username, body});
+
+    return res.json({message: newMsg});
+
+});
 
 /** POST/:id/read - mark message as read:
  *
@@ -43,3 +65,14 @@ const users = require("../models/users");
  *
  **/
 
+router.post('/:id/read', async (req,res,next)=>{
+
+    const id = req.params.id;
+
+    const readMsg = await Message.markRead(id);
+
+    return res.json({message: readMsg});
+
+});
+
+ module.exports = router;
