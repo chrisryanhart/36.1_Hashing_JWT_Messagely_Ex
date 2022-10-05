@@ -30,14 +30,22 @@ const User = require("../models/user.js");
  *
  **/
 
- router.get('/:id', async (req,res,next)=>{
-
-    const id = req.params.id;
-
-    const msgDetails = await Message.get(id);
-
-    return res.json({message: msgDetails});
-
+ router.get('/:id',ensureLoggedIn, async (req,res,next)=>{
+    try{
+        const id = req.params.id;
+        const username = req.user.username;
+    
+        const msgDetails = await Message.get(id);
+    
+        if (username !== msgDetails.to_user.username && username !== msgDetails.from_user.username){
+            throw new ExpressError('cant read this message',401);
+        }
+    
+        return res.json({message: msgDetails});
+    
+    } catch(err){
+        next(err);
+    }
 });
 
 /** POST / - post message.
@@ -47,14 +55,16 @@ const User = require("../models/user.js");
  *
  **/
 
-router.post('/', async (req,res,next)=>{
+router.post('/',ensureLoggedIn, async (req,res,next)=>{
+    try{
+        const {from_username, to_username, body} = req.body;
 
-    const {from_username, to_username, body} = req.body;
-
-    const newMsg = await Message.create({from_username, to_username, body});
-
-    return res.json({message: newMsg});
-
+        const newMsg = await Message.create({from_username, to_username, body});
+    
+        return res.json({message: newMsg});
+    }catch(err){
+        next(err);
+    }
 });
 
 /** POST/:id/read - mark message as read:
@@ -65,14 +75,23 @@ router.post('/', async (req,res,next)=>{
  *
  **/
 
-router.post('/:id/read', async (req,res,next)=>{
-
-    const id = req.params.id;
-
-    const readMsg = await Message.markRead(id);
-
-    return res.json({message: readMsg});
-
+router.post('/:id/read',ensureLoggedIn, async (req,res,next)=>{
+    try{
+        const id = req.params.id;
+        const username = req.user.username;
+    
+        const msgDetails = await Message.get(id);
+    
+        if (username !== msgDetails.to_user.username){
+            throw new ExpressError('cant read this message',401);
+        }
+    
+        const readMsg = await Message.markRead(id);
+    
+        return res.json({message: readMsg});
+    } catch(err){
+        next(err);
+    }
 });
 
  module.exports = router;

@@ -14,16 +14,18 @@ app.use(express.urlencoded({extended: true}));
 // allow connections to all routes from any browser
 app.use(cors());
 
+// permit login and registration
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+
+
 // get auth token for all routes
 app.use(authenticateJWT);
 
 /** routes */
-
-const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
 
-app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/messages", messageRoutes);
 
